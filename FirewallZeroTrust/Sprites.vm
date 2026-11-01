@@ -1,0 +1,491 @@
+function Sprites.draw 0
+    push argument 2
+    push constant 1
+    eq
+    not
+    if-goto Sprites_1
+    push argument 0
+    push argument 1
+    push argument 3
+    call Sprites.drawMail 3
+    pop temp 0
+    push constant 0
+    return
+    goto Sprites_0
+label Sprites_1
+label Sprites_0
+    push argument 2
+    push constant 2
+    eq
+    not
+    if-goto Sprites_3
+    push argument 0
+    push argument 1
+    push argument 3
+    call Sprites.drawPacket 3
+    pop temp 0
+    push constant 0
+    return
+    goto Sprites_2
+label Sprites_3
+label Sprites_2
+    push argument 0
+    push argument 1
+    push argument 3
+    call Sprites.drawServer 3
+    pop temp 0
+    push constant 0
+    return
+function Sprites.erase 0
+    push constant 0
+    call Screen.setColor 1
+    pop temp 0
+    push argument 0
+    push argument 1
+    push argument 0
+    push constant 15
+    add
+    push argument 1
+    push constant 11
+    add
+    call Screen.drawRectangle 4
+    pop temp 0
+    push constant 0
+    return
+function Sprites.frame 0
+    push constant 1
+    neg
+    call Screen.setColor 1
+    pop temp 0
+    push argument 0
+    push argument 1
+    push argument 0
+    push constant 15
+    add
+    push argument 1
+    push constant 11
+    add
+    call Screen.drawRectangle 4
+    pop temp 0
+    push constant 0
+    call Screen.setColor 1
+    pop temp 0
+    push argument 0
+    push constant 1
+    add
+    push argument 1
+    push constant 1
+    add
+    push argument 0
+    push constant 14
+    add
+    push argument 1
+    push constant 10
+    add
+    call Screen.drawRectangle 4
+    pop temp 0
+    push constant 1
+    neg
+    call Screen.setColor 1
+    pop temp 0
+    push constant 0
+    return
+function Sprites.drawMail 0
+    push argument 0
+    push argument 1
+    call Sprites.frame 2
+    pop temp 0
+    push argument 2
+    not
+    if-goto Sprites_5
+    push argument 0
+    push constant 3
+    add
+    push argument 1
+    push constant 2
+    add
+    push argument 0
+    push constant 6
+    add
+    push argument 1
+    push constant 4
+    add
+    call Screen.drawLine 4
+    pop temp 0
+    push argument 0
+    push constant 12
+    add
+    push argument 1
+    push constant 2
+    add
+    push argument 0
+    push constant 9
+    add
+    push argument 1
+    push constant 4
+    add
+    call Screen.drawLine 4
+    pop temp 0
+    push argument 0
+    push constant 4
+    add
+    push argument 1
+    push constant 5
+    add
+    push argument 0
+    push constant 5
+    add
+    push argument 1
+    push constant 6
+    add
+    call Screen.drawRectangle 4
+    pop temp 0
+    push argument 0
+    push constant 10
+    add
+    push argument 1
+    push constant 5
+    add
+    push argument 0
+    push constant 11
+    add
+    push argument 1
+    push constant 6
+    add
+    call Screen.drawRectangle 4
+    pop temp 0
+    push argument 0
+    push constant 3
+    add
+    push argument 1
+    push constant 7
+    add
+    call Screen.drawPixel 2
+    pop temp 0
+    push argument 0
+    push constant 4
+    add
+    push argument 1
+    push constant 8
+    add
+    push argument 0
+    push constant 11
+    add
+    push argument 1
+    push constant 8
+    add
+    call Screen.drawLine 4
+    pop temp 0
+    push argument 0
+    push constant 12
+    add
+    push argument 1
+    push constant 7
+    add
+    call Screen.drawPixel 2
+    pop temp 0
+    push argument 0
+    push constant 5
+    add
+    push argument 1
+    push constant 9
+    add
+    call Screen.drawPixel 2
+    pop temp 0
+    push argument 0
+    push constant 10
+    add
+    push argument 1
+    push constant 9
+    add
+    call Screen.drawPixel 2
+    pop temp 0
+    push constant 0
+    return
+    goto Sprites_4
+label Sprites_5
+label Sprites_4
+    push argument 0
+    push constant 1
+    add
+    push argument 1
+    push constant 1
+    add
+    push argument 0
+    push constant 7
+    add
+    push argument 1
+    push constant 6
+    add
+    call Screen.drawLine 4
+    pop temp 0
+    push argument 0
+    push constant 14
+    add
+    push argument 1
+    push constant 1
+    add
+    push argument 0
+    push constant 8
+    add
+    push argument 1
+    push constant 6
+    add
+    call Screen.drawLine 4
+    pop temp 0
+    push argument 0
+    push constant 10
+    add
+    push argument 1
+    push constant 6
+    add
+    push argument 0
+    push constant 13
+    add
+    push argument 1
+    push constant 9
+    add
+    call Screen.drawRectangle 4
+    pop temp 0
+    push constant 0
+    return
+function Sprites.drawPacket 1
+    push argument 0
+    push argument 1
+    call Sprites.frame 2
+    pop temp 0
+    push argument 0
+    push constant 2
+    add
+    push argument 1
+    push constant 2
+    add
+    push argument 0
+    push constant 13
+    add
+    push argument 1
+    push constant 3
+    add
+    call Screen.drawRectangle 4
+    pop temp 0
+    push argument 0
+    push constant 3
+    add
+    push argument 1
+    push constant 6
+    add
+    push argument 0
+    push constant 12
+    add
+    push argument 1
+    push constant 6
+    add
+    call Screen.drawLine 4
+    pop temp 0
+    push argument 2
+    not
+    if-goto Sprites_7
+    push constant 0
+    pop local 0
+label Sprites_8
+    push local 0
+    push constant 7
+    lt
+    not
+    if-goto Sprites_9
+    push local 0
+    push constant 1
+    and
+    push constant 0
+    eq
+    not
+    if-goto Sprites_11
+    push argument 0
+    push constant 3
+    add
+    push local 0
+    add
+    push argument 1
+    push constant 8
+    add
+    call Screen.drawPixel 2
+    pop temp 0
+    goto Sprites_10
+label Sprites_11
+    push argument 0
+    push constant 3
+    add
+    push local 0
+    add
+    push argument 1
+    push constant 9
+    add
+    call Screen.drawPixel 2
+    pop temp 0
+label Sprites_10
+    push local 0
+    push constant 1
+    add
+    pop local 0
+    goto Sprites_8
+label Sprites_9
+    push argument 0
+    push constant 10
+    add
+    push argument 1
+    push constant 8
+    add
+    push argument 0
+    push constant 11
+    add
+    push argument 1
+    push constant 9
+    add
+    call Screen.drawRectangle 4
+    pop temp 0
+    push constant 0
+    return
+    goto Sprites_6
+label Sprites_7
+label Sprites_6
+    push argument 0
+    push constant 3
+    add
+    push argument 1
+    push constant 8
+    add
+    push argument 0
+    push constant 9
+    add
+    push argument 1
+    push constant 8
+    add
+    call Screen.drawLine 4
+    pop temp 0
+    push constant 0
+    return
+function Sprites.drawServer 0
+    push argument 0
+    push argument 1
+    call Sprites.frame 2
+    pop temp 0
+    push argument 0
+    push constant 3
+    add
+    push argument 1
+    push constant 2
+    add
+    push argument 0
+    push constant 4
+    add
+    push argument 1
+    push constant 3
+    add
+    call Screen.drawRectangle 4
+    pop temp 0
+    push argument 0
+    push constant 6
+    add
+    push argument 1
+    push constant 2
+    add
+    push argument 0
+    push constant 7
+    add
+    push argument 1
+    push constant 3
+    add
+    call Screen.drawRectangle 4
+    pop temp 0
+    push argument 2
+    not
+    if-goto Sprites_13
+    push argument 0
+    push constant 9
+    add
+    push argument 1
+    push constant 1
+    add
+    push argument 0
+    push constant 11
+    add
+    push argument 1
+    push constant 3
+    add
+    call Screen.drawLine 4
+    pop temp 0
+    push argument 0
+    push constant 11
+    add
+    push argument 1
+    push constant 1
+    add
+    push argument 0
+    push constant 9
+    add
+    push argument 1
+    push constant 3
+    add
+    call Screen.drawLine 4
+    pop temp 0
+    goto Sprites_12
+label Sprites_13
+    push argument 0
+    push constant 9
+    add
+    push argument 1
+    push constant 2
+    add
+    push argument 0
+    push constant 10
+    add
+    push argument 1
+    push constant 3
+    add
+    call Screen.drawRectangle 4
+    pop temp 0
+label Sprites_12
+    push argument 0
+    push constant 1
+    add
+    push argument 1
+    push constant 5
+    add
+    push argument 0
+    push constant 14
+    add
+    push argument 1
+    push constant 5
+    add
+    call Screen.drawLine 4
+    pop temp 0
+    push argument 0
+    push constant 3
+    add
+    push argument 1
+    push constant 7
+    add
+    push argument 0
+    push constant 12
+    add
+    push argument 1
+    push constant 7
+    add
+    call Screen.drawLine 4
+    pop temp 0
+    push argument 0
+    push constant 3
+    add
+    push argument 1
+    push constant 9
+    add
+    push argument 0
+    push constant 12
+    add
+    push argument 1
+    push constant 9
+    add
+    call Screen.drawLine 4
+    pop temp 0
+    push constant 0
+    return

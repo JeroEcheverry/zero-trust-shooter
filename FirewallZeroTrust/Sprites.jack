@@ -1,9 +1,8 @@
-// =============================================================
 // Sprites: dibuja los paquetes (16x12 pixeles) de cada nivel.
-// -------------------------------------------------------------
+
 // Cada nivel tiene una forma distinta. En cada nivel el malware
 // se reconoce por un detalle que "se ve malicioso", y ese detalle
-// es cada vez mas pequeno:
+// es cada vez mas pequeño:
 //   Nivel 1 (correo):   sobre normal vs sobre con cara de malvado.
 //                       Facil: se nota a simple vista.
 //   Nivel 2 (paquete):  datos normales vs un gusano ondulado entre
@@ -20,7 +19,6 @@
 //
 // (x, y) siempre es la esquina superior izquierda del sprite.
 // El interior utilizable va de (x+1, y+1) a (x+14, y+10).
-// =============================================================
 
 class Sprites {
 
@@ -125,21 +123,20 @@ class Sprites {
         return;
     }
 
-    /** Nivel 3: servidor con tres LEDs y ranuras de ventilacion. */
+     /** Nivel 3: servidor con tres LEDs de 2x2 y ranuras. */
     function void drawServer(int x, int y, boolean threat) {
         do Sprites.frame(x, y);
 
-        // Los dos primeros LEDs (2x2) son iguales en ambos tipos
+        // Los dos primeros LEDs son iguales en ambos tipos
         do Screen.drawRectangle(x + 3, y + 2, x + 4, y + 3);
         do Screen.drawRectangle(x + 6, y + 2, x + 7, y + 3);
 
         // Tercer LED: es la unica diferencia del nivel 3
         if (threat) {
-            // Comprometido: el LED es una X de 3x3 (error)
-            do Screen.drawLine(x + 9, y + 1, x + 11, y + 3);
-            do Screen.drawLine(x + 11, y + 1, x + 9, y + 3);
+            // Amenaza: corrido un pixel a la derecha
+            do Screen.drawRectangle(x + 10, y + 2, x + 11, y + 3);
         } else {
-            // Legitimo: LED normal, alineado con los otros dos
+            // Legitimo: alineado con los otros dos (cada 3 pixeles)
             do Screen.drawRectangle(x + 9, y + 2, x + 10, y + 3);
         }
 

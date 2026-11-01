@@ -1,0 +1,170 @@
+function Crosshair.new 0
+    push constant 2
+    call Memory.alloc 1
+    pop pointer 0
+    push argument 0
+    pop this 0
+    push argument 1
+    pop this 1
+    push pointer 0
+    return
+function Crosshair.dispose 0
+    push argument 0
+    pop pointer 0
+    push pointer 0
+    call Memory.deAlloc 1
+    pop temp 0
+    push constant 0
+    return
+function Crosshair.getX 0
+    push argument 0
+    pop pointer 0
+    push this 0
+    return
+function Crosshair.getY 0
+    push argument 0
+    pop pointer 0
+    push this 1
+    return
+function Crosshair.move 0
+    push argument 0
+    pop pointer 0
+    push this 0
+    push argument 1
+    add
+    pop this 0
+    push this 1
+    push argument 2
+    add
+    pop this 1
+    push this 0
+    push constant 5
+    lt
+    not
+    if-goto Crosshair_1
+    push constant 5
+    pop this 0
+    goto Crosshair_0
+label Crosshair_1
+label Crosshair_0
+    push this 0
+    push constant 506
+    gt
+    not
+    if-goto Crosshair_3
+    push constant 506
+    pop this 0
+    goto Crosshair_2
+label Crosshair_3
+label Crosshair_2
+    push this 1
+    push constant 18
+    lt
+    not
+    if-goto Crosshair_5
+    push constant 18
+    pop this 1
+    goto Crosshair_4
+label Crosshair_5
+label Crosshair_4
+    push this 1
+    push constant 235
+    gt
+    not
+    if-goto Crosshair_7
+    push constant 235
+    pop this 1
+    goto Crosshair_6
+label Crosshair_7
+label Crosshair_6
+    push constant 0
+    return
+function Crosshair.draw 0
+    push argument 0
+    pop pointer 0
+    push constant 1
+    neg
+    call Screen.setColor 1
+    pop temp 0
+    push this 0
+    push constant 5
+    sub
+    push this 1
+    push this 0
+    push constant 2
+    sub
+    push this 1
+    call Screen.drawLine 4
+    pop temp 0
+    push this 0
+    push constant 2
+    add
+    push this 1
+    push this 0
+    push constant 5
+    add
+    push this 1
+    call Screen.drawLine 4
+    pop temp 0
+    push this 0
+    push this 1
+    push constant 5
+    sub
+    push this 0
+    push this 1
+    push constant 2
+    sub
+    call Screen.drawLine 4
+    pop temp 0
+    push this 0
+    push this 1
+    push constant 2
+    add
+    push this 0
+    push this 1
+    push constant 5
+    add
+    call Screen.drawLine 4
+    pop temp 0
+    push this 0
+    push this 1
+    call Screen.drawPixel 2
+    pop temp 0
+    push constant 0
+    return
+function Crosshair.erase 0
+    push argument 0
+    pop pointer 0
+    push constant 0
+    call Screen.setColor 1
+    pop temp 0
+    push this 0
+    push constant 5
+    sub
+    push this 1
+    push constant 5
+    sub
+    push this 0
+    push constant 5
+    add
+    push this 1
+    push constant 5
+    add
+    call Screen.drawRectangle 4
+    pop temp 0
+    push constant 0
+    return
+function Crosshair.flash 0
+    push argument 0
+    pop pointer 0
+    push constant 1
+    neg
+    call Screen.setColor 1
+    pop temp 0
+    push this 0
+    push this 1
+    push constant 3
+    call Screen.drawCircle 3
+    pop temp 0
+    push constant 0
+    return

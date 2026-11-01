@@ -1,6 +1,5 @@
-// =============================================================
 // Main de PRUEBA: Crosshair + Sprites
-// -------------------------------------------------------------
+
 // NO es el Main final del juego. Sirve para comprobar que las dos
 // primeras clases funcionan:
 //   - Sprites: dibuja los 6 paquetes (legitimo y malware de los
@@ -11,7 +10,6 @@
 // Para usarlo: poner en una misma carpeta este Main.jack,
 // Crosshair.jack y Sprites.jack, compilar la carpeta con el
 // JackCompiler y cargarla en el VM Emulator.
-// =============================================================
 
 class Main {
 
