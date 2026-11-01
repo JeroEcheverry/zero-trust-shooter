@@ -2,14 +2,15 @@
 
 // Cada nivel tiene una forma distinta. En cada nivel el malware
 // se reconoce por un detalle que "se ve malicioso", y ese detalle
-// es cada vez mas pequeño:
+// es cada vez mas pequeno:
 //   Nivel 1 (correo):   sobre normal vs sobre con cara de malvado.
 //                       Facil: se nota a simple vista.
 //   Nivel 2 (paquete):  datos normales vs un gusano ondulado entre
 //                       los datos. Hay que mirar con atencion.
-//   Nivel 3 (servidor): tres LEDs vs el tercer LED convertido en
-//                       una X (sistema comprometido). Pequeno y
-//                       rapido: el mas dificil.
+//   Nivel 3 (servidor): servidor verificado (un chulo) vs servidor
+//                       con un insecto (un "bug"). La forma es clara,
+//                       pero hay mas paquetes y van mas rapido: el
+//                       nivel mas dificil.
 //
 // Los sprites se arman con Screen.drawRectangle, drawLine y
 // drawPixel. Esas funciones del sistema operativo aceptan
@@ -123,27 +124,40 @@ class Sprites {
         return;
     }
 
-     /** Nivel 3: servidor con tres LEDs de 2x2 y ranuras. */
+    /** Nivel 3: servidor con un icono de estado y una ranura de
+     *  ventilacion. El icono ocupa las filas y+1..y+7. */
     function void drawServer(int x, int y, boolean threat) {
         do Sprites.frame(x, y);
 
-        // Los dos primeros LEDs son iguales en ambos tipos
-        do Screen.drawRectangle(x + 3, y + 2, x + 4, y + 3);
-        do Screen.drawRectangle(x + 6, y + 2, x + 7, y + 3);
+        // Ranura de ventilacion (igual en ambos: los dos "son"
+        // servidores vistos de lejos)
+        do Screen.drawLine(x + 3, y + 9, x + 12, y + 9);
 
-        // Tercer LED: es la unica diferencia del nivel 3
         if (threat) {
-            // Amenaza: corrido un pixel a la derecha
-            do Screen.drawRectangle(x + 10, y + 2, x + 11, y + 3);
-        } else {
-            // Legitimo: alineado con los otros dos (cada 3 pixeles)
-            do Screen.drawRectangle(x + 9, y + 2, x + 10, y + 3);
+            // Comprometido: un insecto (un "bug") visto desde arriba
+            // Antenas
+            do Screen.drawPixel(x + 6, y + 1);
+            do Screen.drawPixel(x + 9, y + 1);
+            // Cabeza (2x2)
+            do Screen.drawRectangle(x + 7, y + 2, x + 8, y + 3);
+            // Cuerpo (4x4)
+            do Screen.drawRectangle(x + 6, y + 4, x + 9, y + 7);
+            // Tres patas a cada lado: delantera, media y trasera
+            do Screen.drawLine(x + 4, y + 3, x + 5, y + 4);
+            do Screen.drawLine(x + 4, y + 5, x + 5, y + 5);
+            do Screen.drawLine(x + 4, y + 7, x + 5, y + 6);
+            do Screen.drawLine(x + 11, y + 3, x + 10, y + 4);
+            do Screen.drawLine(x + 10, y + 5, x + 11, y + 5);
+            do Screen.drawLine(x + 11, y + 7, x + 10, y + 6);
+            return;
         }
 
-        // Division del panel y ranuras de ventilacion
-        do Screen.drawLine(x + 1, y + 5, x + 14, y + 5);
-        do Screen.drawLine(x + 3, y + 7, x + 12, y + 7);
-        do Screen.drawLine(x + 3, y + 9, x + 12, y + 9);
+        // Legitimo: un chulo (check) de 2 pixeles de grosor,
+        // el simbolo de "verificado"
+        do Screen.drawLine(x + 4, y + 4, x + 6, y + 6);
+        do Screen.drawLine(x + 4, y + 5, x + 6, y + 7);
+        do Screen.drawLine(x + 6, y + 6, x + 11, y + 1);
+        do Screen.drawLine(x + 6, y + 7, x + 11, y + 2);
         return;
     }
 }
