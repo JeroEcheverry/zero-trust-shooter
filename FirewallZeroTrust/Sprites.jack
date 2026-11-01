@@ -1,20 +1,26 @@
+// =============================================================
 // Sprites: dibuja los paquetes (16x12 pixeles) de cada nivel.
-
-// Cada nivel tiene una forma distinta, y en cada nivel el malware
-// se diferencia del trafico legitimo por un detalle cada vez mas
-// pequeno:
-//   Nivel 1 (correo):   sello relleno vs sello hueco.
-//   Nivel 2 (paquete):  cabecera completa vs cabecera partida.
-//   Nivel 3 (servidor): tres LEDs alineados vs el tercero corrido
-//                       un solo pixel.
+// -------------------------------------------------------------
+// Cada nivel tiene una forma distinta. En cada nivel el malware
+// se reconoce por un detalle que "se ve malicioso", y ese detalle
+// es cada vez mas pequeno:
+//   Nivel 1 (correo):   sobre normal vs sobre con cara de malvado.
+//                       Facil: se nota a simple vista.
+//   Nivel 2 (paquete):  datos normales vs un gusano ondulado entre
+//                       los datos. Hay que mirar con atencion.
+//   Nivel 3 (servidor): tres LEDs vs el tercer LED convertido en
+//                       una X (sistema comprometido). Pequeno y
+//                       rapido: el mas dificil.
 //
-// Los sprites se arman con Screen.drawRectangle y Screen.drawLine.
-// Esas funciones del sistema operativo aceptan cualquier posicion
-// en pixeles, asi que los paquetes se pueden mover de a 1 pixel
-// (si escribieramos palabras de 16 bits directo en memoria, solo
-// podrian moverse de 16 en 16 en horizontal).
+// Los sprites se arman con Screen.drawRectangle, drawLine y
+// drawPixel. Esas funciones del sistema operativo aceptan
+// cualquier posicion en pixeles, asi que los paquetes se pueden
+// mover de a 1 pixel (si escribieramos palabras de 16 bits directo
+// en memoria, solo podrian moverse de 16 en 16 en horizontal).
 //
 // (x, y) siempre es la esquina superior izquierda del sprite.
+// El interior utilizable va de (x+1, y+1) a (x+14, y+10).
+// =============================================================
 
 class Sprites {
 
@@ -57,62 +63,83 @@ class Sprites {
         return;
     }
 
-    /** Nivel 1: sobre de correo con sello. */
+    /** Nivel 1: sobre de correo. */
     function void drawMail(int x, int y, boolean threat) {
         do Sprites.frame(x, y);
 
-        // Solapa del sobre: una "V" desde las esquinas superiores
+        if (threat) {
+            // Phishing: el sobre tiene cara de malvado
+            // Cejas inclinadas hacia el centro (gesto de enojo)
+            do Screen.drawLine(x + 3, y + 2, x + 6, y + 4);
+            do Screen.drawLine(x + 12, y + 2, x + 9, y + 4);
+            // Ojos de 2x2 debajo de las cejas
+            do Screen.drawRectangle(x + 4, y + 5, x + 5, y + 6);
+            do Screen.drawRectangle(x + 10, y + 5, x + 11, y + 6);
+            // Sonrisa malvada: comisuras levantadas y dos colmillos
+            do Screen.drawPixel(x + 3, y + 7);
+            do Screen.drawLine(x + 4, y + 8, x + 11, y + 8);
+            do Screen.drawPixel(x + 12, y + 7);
+            do Screen.drawPixel(x + 5, y + 9);
+            do Screen.drawPixel(x + 10, y + 9);
+            return;
+        }
+
+        // Legitimo: solapa del sobre (una "V" desde las esquinas)
         do Screen.drawLine(x + 1, y + 1, x + 7, y + 6);
         do Screen.drawLine(x + 14, y + 1, x + 8, y + 6);
-
-        // Sello de 4x4 en la esquina inferior derecha (relleno)
+        // y sello de 4x4 en la esquina inferior derecha
         do Screen.drawRectangle(x + 10, y + 6, x + 13, y + 9);
-
-        // Phishing: se le "abre" un hueco de 2x2 al sello.
-        // Es la diferencia mas facil de ver del juego.
-        if (threat) {
-            do Screen.setColor(false);
-            do Screen.drawRectangle(x + 11, y + 7, x + 12, y + 8);
-            do Screen.setColor(true);
-        }
         return;
     }
 
     /** Nivel 2: paquete de red con cabecera y lineas de datos. */
     function void drawPacket(int x, int y, boolean threat) {
+        var int i;
+
         do Sprites.frame(x, y);
 
-        // Cabecera (barra de 2 pixeles de alto en la parte de arriba)
+        // Cabecera y primera linea de datos (iguales en ambos,
+        // para que se parezcan)
+        do Screen.drawRectangle(x + 2, y + 2, x + 13, y + 3);
+        do Screen.drawLine(x + 3, y + 6, x + 12, y + 6);
+
         if (threat) {
-            // Gusano: la cabecera esta partida en dos, con un
-            // hueco de 2 pixeles en el medio
-            do Screen.drawRectangle(x + 2, y + 2, x + 6, y + 3);
-            do Screen.drawRectangle(x + 9, y + 2, x + 13, y + 3);
-        } else {
-            // Legitimo: cabecera completa
-            do Screen.drawRectangle(x + 2, y + 2, x + 13, y + 3);
+            // Gusano: la segunda linea de datos es una onda (un
+            // pixel arriba, uno abajo) que termina en una cabeza
+            let i = 0;
+            while (i < 7) {
+                if ((i & 1) = 0) {
+                    do Screen.drawPixel(x + 3 + i, y + 8);
+                } else {
+                    do Screen.drawPixel(x + 3 + i, y + 9);
+                }
+                let i = i + 1;
+            }
+            // Cabeza del gusano (2x2)
+            do Screen.drawRectangle(x + 10, y + 8, x + 11, y + 9);
+            return;
         }
 
-        // Lineas de datos (iguales en ambos, para que se parezcan)
-        do Screen.drawLine(x + 3, y + 6, x + 12, y + 6);
+        // Legitimo: segunda linea de datos recta
         do Screen.drawLine(x + 3, y + 8, x + 9, y + 8);
         return;
     }
 
-    /** Nivel 3: servidor con tres LEDs de 2x2 y ranuras. */
+    /** Nivel 3: servidor con tres LEDs y ranuras de ventilacion. */
     function void drawServer(int x, int y, boolean threat) {
         do Sprites.frame(x, y);
 
-        // Los dos primeros LEDs son iguales en ambos tipos
+        // Los dos primeros LEDs (2x2) son iguales en ambos tipos
         do Screen.drawRectangle(x + 3, y + 2, x + 4, y + 3);
         do Screen.drawRectangle(x + 6, y + 2, x + 7, y + 3);
 
         // Tercer LED: es la unica diferencia del nivel 3
         if (threat) {
-            // Amenaza: corrido un pixel a la derecha
-            do Screen.drawRectangle(x + 10, y + 2, x + 11, y + 3);
+            // Comprometido: el LED es una X de 3x3 (error)
+            do Screen.drawLine(x + 9, y + 1, x + 11, y + 3);
+            do Screen.drawLine(x + 11, y + 1, x + 9, y + 3);
         } else {
-            // Legitimo: alineado con los otros dos (cada 3 pixeles)
+            // Legitimo: LED normal, alineado con los otros dos
             do Screen.drawRectangle(x + 9, y + 2, x + 10, y + 3);
         }
 

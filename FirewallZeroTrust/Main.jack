@@ -1,0 +1,72 @@
+// =============================================================
+// Main de PRUEBA: Crosshair + Sprites
+// -------------------------------------------------------------
+// NO es el Main final del juego. Sirve para comprobar que las dos
+// primeras clases funcionan:
+//   - Sprites: dibuja los 6 paquetes (legitimo y malware de los
+//     3 niveles).
+//   - Crosshair: la mira se mueve con las flechas sin salirse de
+//     la pantalla.
+//
+// Para usarlo: poner en una misma carpeta este Main.jack,
+// Crosshair.jack y Sprites.jack, compilar la carpeta con el
+// JackCompiler y cargarla en el VM Emulator.
+// =============================================================
+
+class Main {
+
+    function void main() {
+        var Crosshair cross;
+        var int key;
+
+        do Screen.clearScreen();
+
+        // Textos fijos: se imprimen una sola vez, antes del loop
+        do Output.moveCursor(1, 18);
+        do Output.printString("Prueba: Crosshair + Sprites");
+        do Output.moveCursor(4, 14);
+        do Output.printString("Nivel 1      Nivel 2      Nivel 3");
+        do Output.moveCursor(7, 3);
+        do Output.printString("Legitimo");
+        do Output.moveCursor(11, 3);
+        do Output.printString("Malware");
+        do Output.moveCursor(20, 14);
+        do Output.printString("Flechas: mover la mira");
+
+        // La mira empieza abajo de los sprites
+        let cross = Crosshair.new(256, 180);
+
+        // Loop de prueba: nunca termina (se detiene con Stop en el
+        // emulador)
+        while (true) {
+            // 1. Leer el teclado sin bloquear
+            let key = Keyboard.keyPressed();
+
+            // 2. Borrar la mira en su posicion anterior
+            do cross.erase();
+
+            // 3. Moverla segun la flecha presionada
+            if (key = 130) { do cross.move(-4, 0); }   // izquierda
+            if (key = 131) { do cross.move(0, -4); }   // arriba
+            if (key = 132) { do cross.move(4, 0); }    // derecha
+            if (key = 133) { do cross.move(0, 4); }    // abajo
+
+            // 4. Redibujar los sprites. Si la mira pasa por encima,
+            //    erase() les borra un pedazo; en Hack no hay capas,
+            //    asi que hay que volver a dibujarlos en cada frame
+            do Sprites.draw(120, 80, 1, false);
+            do Sprites.draw(120, 124, 1, true);
+            do Sprites.draw(224, 80, 2, false);
+            do Sprites.draw(224, 124, 2, true);
+            do Sprites.draw(328, 80, 3, false);
+            do Sprites.draw(328, 124, 3, true);
+
+            // 5. Dibujar la mira encima de todo
+            do cross.draw();
+
+            // 6. Pausa para que no vaya demasiado rapido
+            do Sys.wait(15);
+        }
+        return;
+    }
+}
