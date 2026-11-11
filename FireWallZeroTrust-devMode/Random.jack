@@ -1,0 +1,94 @@
+// Random: generador de numeros pseudoaleatorios.
+
+// Jack no trae una funcion para numeros aleatorios, asi que la
+// implementamos con un LFSR (Linear Feedback Shift Register)
+
+// Idea del LFSR: en cada paso se desplaza el estado un bit a la
+// derecha; si el bit que "salio" era 1, se hace XOR con el
+// polinomio. Eso recorre 65.535 estados distintos antes de
+// repetirse.
+
+// Solo usa &, |, ~, suma y division entre 2: no depende de como
+// se comporte la multiplicacion cuando desborda los 16 bits.
+
+// La semilla sale de cuantas vueltas da el loop de la pantalla de
+// inicio antes de que el jugador presione ENTER, asi que cada
+// partida es distinta.
+
+class Random {
+    static int state;   // estado actual del LFSR (nunca puede ser 0)
+
+    /** Fija la semilla del generador. */
+    function void setSeed(int seed) {
+        let state = seed;
+
+        // Un LFSR en 0 se queda en 0 para siempre:
+        // si la semilla es 0, usamos una fija
+        if (state = 0) {
+            let state = 12345;
+        }
+        return;
+    }
+
+    /** XOR bit a bit. Jack no tiene el operador, asi que se arma
+     *  con la identidad: a XOR b = (a OR b) AND NOT (a AND b). */
+    function int xor(int a, int b) {
+        return (a | b) & (~(a & b));
+    }
+
+    /** Avanza el LFSR un paso. */
+    function void step() {
+        var int lsb, shifted;
+
+        // Guardar el bit que va a salir (bit 0)
+        let lsb = state & 1;
+
+        // Desplazamiento LOGICO a la derecha (Jack no tiene >>).
+        // Dividir entre 2 funciona para positivos, pero un negativo
+        // (bit 15 en 1) se dividiria con signo. Por eso, si es
+        // negativo: se limpia el bit 15, se divide, y ese bit
+        // reaparece en la posicion 14 (16384).
+        if (state < 0) {
+            let shifted = ((state & 32767) / 2) | 16384;
+        } else {
+            let shifted = state / 2;
+        }
+
+        // Retroalimentacion: si salio un 1, XOR con el polinomio.
+        // 0xB400 = 46080, que no cabe como literal positivo en Jack
+        // (maximo 32767); en 16 bits con signo vale -19456.
+        if (lsb = 1) {
+            let shifted = Random.xor(shifted, -19456);
+        }
+
+        let state = shifted;
+        return;
+    }
+
+    /** Devuelve el siguiente numero, en [0, 32767]. */
+    function int next() {
+        var int i;
+
+        // Dos estados consecutivos de un LFSR son casi el mismo
+        // numero desplazado un bit. Dar 7 pasos por llamada hace
+        // que dos valores seguidos no salgan correlacionados.
+        let i = 0;
+        while (i < 7) {
+            do Random.step();
+            let i = i + 1;
+        }
+
+        // Quitar el bit de signo para devolver siempre un positivo
+        return state & 32767;
+    }
+
+    /** Devuelve un entero aleatorio en [0, n-1]. */
+    function int range(int n) {
+        var int r;
+        let r = Random.next();
+
+        // Modulo: r mod n = r - (r / n) * n
+        // (Jack no tiene operador %; la division es entera)
+        return r - ((r / n) * n);
+    }
+}

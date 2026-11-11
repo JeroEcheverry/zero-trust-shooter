@@ -1,0 +1,163 @@
+// Sprites: dibuja los paquetes (16x12 pixeles) de cada nivel.
+
+// Cada nivel tiene una forma distinta. En cada nivel el malware
+// se reconoce por un detalle que "se ve malicioso", y ese detalle
+// es cada vez mas pequeno:
+//   Nivel 1 (correo):   sobre normal vs sobre con cara de malvado.
+//                       Facil: se nota a simple vista.
+//   Nivel 2 (paquete):  datos normales vs un gusano ondulado entre
+//                       los datos. Hay que mirar con atencion.
+//   Nivel 3 (servidor): servidor verificado (un chulo) vs servidor
+//                       con un insecto (un "bug"). La forma es clara,
+//                       pero hay mas paquetes y van mas rapido: el
+//                       nivel mas dificil.
+//
+// Los sprites se arman con Screen.drawRectangle, drawLine y
+// drawPixel. Esas funciones del sistema operativo aceptan
+// cualquier posicion en pixeles, asi que los paquetes se pueden
+// mover de a 1 pixel (si escribieramos palabras de 16 bits directo
+// en memoria, solo podrian moverse de 16 en 16 en horizontal).
+//
+// (x, y) siempre es la esquina superior izquierda del sprite.
+// El interior utilizable va de (x+1, y+1) a (x+14, y+10).
+
+class Sprites {
+
+    /** Dibuja el sprite que corresponde al nivel actual. */
+    function void draw(int x, int y, int level, boolean threat) {
+        // Despachar segun el nivel; cada funcion sabe dibujar
+        // la version legitima y la version malware de su forma
+        if (level = 1) {
+            do Sprites.drawMail(x, y, threat);
+            return;
+        }
+        if (level = 2) {
+            do Sprites.drawPacket(x, y, threat);
+            return;
+        }
+        do Sprites.drawServer(x, y, threat);
+        return;
+    }
+
+    /** Borra el sprite pintando de blanco todo su rectangulo. */
+    function void erase(int x, int y) {
+        do Screen.setColor(false);
+        do Screen.drawRectangle(x, y, x + 15, y + 11);
+        return;
+    }
+
+    /** Marco comun a todos los sprites: borde negro de 1 pixel con
+     *  interior blanco. Deja el color en negro para que lo que se
+     *  dibuje despues salga negro. */
+    function void frame(int x, int y) {
+        // Rectangulo negro completo...
+        do Screen.setColor(true);
+        do Screen.drawRectangle(x, y, x + 15, y + 11);
+
+        // ...y uno blanco 1 pixel mas adentro: queda solo el borde
+        do Screen.setColor(false);
+        do Screen.drawRectangle(x + 1, y + 1, x + 14, y + 10);
+
+        do Screen.setColor(true);
+        return;
+    }
+
+    /** Nivel 1: sobre de correo. */
+    function void drawMail(int x, int y, boolean threat) {
+        do Sprites.frame(x, y);
+
+        if (threat) {
+            // Phishing: el sobre tiene cara de malvado
+            // Cejas inclinadas hacia el centro (gesto de enojo)
+            do Screen.drawLine(x + 3, y + 2, x + 6, y + 4);
+            do Screen.drawLine(x + 12, y + 2, x + 9, y + 4);
+            // Ojos de 2x2 debajo de las cejas
+            do Screen.drawRectangle(x + 4, y + 5, x + 5, y + 6);
+            do Screen.drawRectangle(x + 10, y + 5, x + 11, y + 6);
+            // Sonrisa malvada: comisuras levantadas y dos colmillos
+            do Screen.drawPixel(x + 3, y + 7);
+            do Screen.drawLine(x + 4, y + 8, x + 11, y + 8);
+            do Screen.drawPixel(x + 12, y + 7);
+            do Screen.drawPixel(x + 5, y + 9);
+            do Screen.drawPixel(x + 10, y + 9);
+            return;
+        }
+
+        // Legitimo: solapa del sobre (una "V" desde las esquinas)
+        do Screen.drawLine(x + 1, y + 1, x + 7, y + 6);
+        do Screen.drawLine(x + 14, y + 1, x + 8, y + 6);
+        // y sello de 4x4 en la esquina inferior derecha
+        do Screen.drawRectangle(x + 10, y + 6, x + 13, y + 9);
+        return;
+    }
+
+    /** Nivel 2: paquete de red con cabecera y lineas de datos. */
+    function void drawPacket(int x, int y, boolean threat) {
+        var int i;
+
+        do Sprites.frame(x, y);
+
+        // Cabecera y primera linea de datos (iguales en ambos,
+        // para que se parezcan)
+        do Screen.drawRectangle(x + 2, y + 2, x + 13, y + 3);
+        do Screen.drawLine(x + 3, y + 6, x + 12, y + 6);
+
+        if (threat) {
+            // Gusano: la segunda linea de datos es una onda (un
+            // pixel arriba, uno abajo) que termina en una cabeza
+            let i = 0;
+            while (i < 7) {
+                if ((i & 1) = 0) {
+                    do Screen.drawPixel(x + 3 + i, y + 8);
+                } else {
+                    do Screen.drawPixel(x + 3 + i, y + 9);
+                }
+                let i = i + 1;
+            }
+            // Cabeza del gusano (2x2)
+            do Screen.drawRectangle(x + 10, y + 8, x + 11, y + 9);
+            return;
+        }
+
+        // Legitimo: segunda linea de datos recta
+        do Screen.drawLine(x + 3, y + 8, x + 9, y + 8);
+        return;
+    }
+
+    /** Nivel 3: servidor con un icono de estado y una ranura de
+     *  ventilacion. El icono ocupa las filas y+1..y+7. */
+    function void drawServer(int x, int y, boolean threat) {
+        do Sprites.frame(x, y);
+
+        // Ranura de ventilacion (igual en ambos: los dos "son"
+        // servidores vistos de lejos)
+        do Screen.drawLine(x + 3, y + 9, x + 12, y + 9);
+
+        if (threat) {
+            // Comprometido: un insecto (un "bug") visto desde arriba
+            // Antenas
+            do Screen.drawPixel(x + 6, y + 1);
+            do Screen.drawPixel(x + 9, y + 1);
+            // Cabeza (2x2)
+            do Screen.drawRectangle(x + 7, y + 2, x + 8, y + 3);
+            // Cuerpo (4x4)
+            do Screen.drawRectangle(x + 6, y + 4, x + 9, y + 7);
+            // Tres patas a cada lado: delantera, media y trasera
+            do Screen.drawLine(x + 4, y + 3, x + 5, y + 4);
+            do Screen.drawLine(x + 4, y + 5, x + 5, y + 5);
+            do Screen.drawLine(x + 4, y + 7, x + 5, y + 6);
+            do Screen.drawLine(x + 11, y + 3, x + 10, y + 4);
+            do Screen.drawLine(x + 10, y + 5, x + 11, y + 5);
+            do Screen.drawLine(x + 11, y + 7, x + 10, y + 6);
+            return;
+        }
+
+        // Legitimo: un chulo (check) de 2 pixeles de grosor,
+        // el simbolo de "verificado"
+        do Screen.drawLine(x + 4, y + 4, x + 6, y + 6);
+        do Screen.drawLine(x + 4, y + 5, x + 6, y + 7);
+        do Screen.drawLine(x + 6, y + 6, x + 11, y + 1);
+        do Screen.drawLine(x + 6, y + 7, x + 11, y + 2);
+        return;
+    }
+}

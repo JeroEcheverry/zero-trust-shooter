@@ -1,0 +1,15 @@
+// Main: punto de entrada. Una partida tras otra, para siempre.
+// Cada partida se libera antes de crear la siguiente, asi que
+// jugar muchas veces seguidas no llena el heap.
+
+class Main {
+    function void main() {
+        var Game game;
+        while (true) {
+            let game = Game.new();
+            do game.run();
+            do game.dispose();
+        }
+        return;
+    }
+}

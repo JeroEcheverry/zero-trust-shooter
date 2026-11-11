@@ -1,0 +1,256 @@
+// VERSION DEV: copia de FirewallZeroTrust/Game.jack con un menu de
+// desarrollador (tecla M). Diferencias con el original: el campo
+// god, el metodo devMenu y dos lineas en run (marcadas con DEV).
+// Las demas clases de esta carpeta son copias sin cambios, salvo
+// Hud (showDev y dos rotulos).
+
+// Game: una partida completa. Orquesta las demas clases y lleva el
+// puntaje, las vidas y el nivel.
+
+// Todos los objetos (la mira y los 5 paquetes) se crean una sola
+// vez en el constructor y se reutilizan: durante la partida no se
+// pide ni se libera memoria, asi que el heap no se puede llenar.
+
+class Game {
+    field Crosshair cross;
+    field Array packets;    // 5 slots de Packet, activos o libres
+    field int score, lives, level;
+    field boolean god;      // DEV: modo dios, las vidas no bajan
+
+    constructor Game new() {
+        var int i;
+        let cross = Crosshair.new(256, 128);
+        let packets = Array.new(5);
+        let i = 0;
+        while (i < 5) {
+            let packets[i] = Packet.new();
+            let i = i + 1;
+        }
+        let score = 0;
+        let lives = 3;
+        let level = 1;
+        let god = false;
+        return this;
+    }
+
+    /** Libera todo lo que creo el constructor. */
+    method void dispose() {
+        var int i;
+        var Packet p;
+        let i = 0;
+        while (i < 5) {
+            let p = packets[i];
+            do p.dispose();
+            let i = i + 1;
+        }
+        do packets.dispose();
+        do cross.dispose();
+        do Memory.deAlloc(this);
+        return;
+    }
+
+    /** Espera ENTER y luego a que se suelte la tecla, para que una
+     *  sola pulsacion no se salte dos pantallas. Usa keyPressed y
+     *  no readChar porque asi no aparece el cursor de texto. */
+    function void waitEnter() {
+        while (~(Keyboard.keyPressed() = 128)) {}
+        while (~(Keyboard.keyPressed() = 0)) {}
+        return;
+    }
+
+    /** Presenta el nivel y deja la pantalla de juego lista. Limpia
+     *  la pantalla, asi que hay que reimprimir todo el marcador y
+     *  vaciar los slots (sus dibujos ya no existen). */
+    method void startLevel() {
+        var int i;
+        var Packet p;
+        do Hud.showLevel(level);
+        do Game.waitEnter();
+        do Hud.frame(level);
+        do Hud.update(score, lives);
+        do Background.init();
+        let i = 0;
+        while (i < 5) {
+            let p = packets[i];
+            do p.deactivate();
+            let i = i + 1;
+        }
+        return;
+    }
+
+    /** DEV: pausa el juego y muestra el menu. Al salir redibuja la
+     *  pantalla de juego; los paquetes siguen activos y se vuelven
+     *  a dibujar solos en el paso 7 del loop. */
+    method void devMenu() {
+        var int key;
+        do Hud.showDev(god);
+        while (~(Keyboard.keyPressed() = 0)) {}     // soltar la M
+        let key = 0;
+        while (((key < 49) | (key > 54)) & (~(key = 128))) {
+            let key = Keyboard.keyPressed();
+        }
+        while (~(Keyboard.keyPressed() = 0)) {}
+
+        // 1, 2, 3: mismo puntaje de arranque que la pantalla de inicio
+        if (key = 49) { let score = 0; }
+        if (key = 50) { let score = 100; }
+        if (key = 51) { let score = 250; }
+        if (key < 52) {
+            if (key > 48) {
+                let level = Level.forScore(score);
+                do startLevel();
+                return;
+            }
+        }
+        if (key = 52) { let lives = 3; }
+        if (key = 53) { let god = ~god; }
+        if (key = 54) {
+            let lives = 0;
+            let god = false;    // si no, el modo dios lo deshace
+        }
+
+        do Hud.frame(level);
+        do Hud.update(score, lives);
+        do Background.init();
+        return;
+    }
+
+    /** Corre la partida hasta que se acaban las vidas. */
+    method void run() {
+        var int key, prevKey, i, j, n, oldScore, oldLives;
+        var Packet p, q;
+
+        // Pantalla de inicio. Las vueltas que da este loop hasta el
+        // ENTER son la semilla: cada partida sale distinta.
+        // Atajo de demo: 1, 2, 3 eligen el nivel de arranque.
+        do Hud.showStart();
+        let n = 0;
+        let key = 0;
+        while (~(key = 128)) {
+            let key = Keyboard.keyPressed();
+            if (key = 49) { let score = 0; }
+            if (key = 50) { let score = 100; }
+            if (key = 51) { let score = 250; }
+            let n = n + 1;
+        }
+        while (~(Keyboard.keyPressed() = 0)) {}
+        do Random.setSeed(n);
+        let level = Level.forScore(score);
+        do startLevel();
+
+        let prevKey = 0;
+        while (lives > 0) {
+            let oldScore = score;
+            let oldLives = lives;
+
+            // 1. Teclado sin bloquear: el juego sigue aunque no se
+            //    presione nada
+            let key = Keyboard.keyPressed();
+            // DEV: M (mayuscula o minuscula) abre el menu
+            if ((key = 77) | (key = 109)) { do devMenu(); }
+
+            // 2. Mover la mira
+            do cross.erase();
+            if (key = 130) { do cross.move(-4, 0); }    // izquierda
+            if (key = 131) { do cross.move(0, -4); }    // arriba
+            if (key = 132) { do cross.move(4, 0); }     // derecha
+            if (key = 133) { do cross.move(0, 4); }     // abajo
+
+            // 3. Borrar todos los paquetes antes de mover alguno:
+            //    asi el borrado de uno no muerde a otro ya dibujado
+            let i = 0;
+            while (i < 5) {
+                let p = packets[i];
+                if (p.isActive()) { do p.erase(); }
+                let i = i + 1;
+            }
+
+            // 4. Disparo por flanco: solo cuenta el frame en que el
+            //    espacio pasa de suelto a presionado (hay que
+            //    soltarlo entre disparos)
+            if ((key = 32) & (~(prevKey = 32))) {
+                let i = 0;
+                while (i < 5) {
+                    let p = packets[i];
+                    if (p.isActive() & p.contains(cross.getX(), cross.getY())) {
+                        if (p.isThreat()) {
+                            let score = score + 10;
+                        } else {
+                            let lives = lives - 1;      // falso positivo
+                        }
+                        do p.deactivate();
+                        let i = 5;      // un disparo, un paquete
+                    }
+                    let i = i + 1;
+                }
+                do cross.flash();
+            }
+
+            // 5. Nacer, moverse y morir. Solo se usan los slots que
+            //    permite el nivel.
+            let n = Level.maxPackets(level);
+            let i = 0;
+            while (i < n) {
+                let p = packets[i];
+                if (p.isActive()) {
+                    do p.update();
+                    if (p.expired()) {
+                        if (p.isThreat()) {
+                            let lives = lives - 1;      // falso negativo
+                        } else {
+                            let score = score + 2;
+                        }
+                        do p.deactivate();
+                    }
+                } else {
+                    // 1 de cada 40 frames en promedio: los paquetes
+                    // no aparecen todos a la vez
+                    if (Random.range(40) = 0) { do p.spawn(level); }
+                }
+                let i = i + 1;
+            }
+
+            // 6. Choques entre paquetes: cada par (i, j) una sola vez
+            let i = 0;
+            while (i < 4) {
+                let p = packets[i];
+                let j = i + 1;
+                while (j < 5) {
+                    let q = packets[j];
+                    if (p.isActive() & q.isActive()) { do p.collide(q); }
+                    let j = j + 1;
+                }
+                let i = i + 1;
+            }
+
+            // 7. Dibujar todo; la mira al final para que quede encima
+            let i = 0;
+            while (i < 5) {
+                let p = packets[i];
+                if (p.isActive()) { do p.draw(level); }
+                let i = i + 1;
+            }
+            do cross.draw();
+
+            // 8. Marcador solo si cambio algo (imprimir es lento)
+            // DEV: en modo dios las vidas perdidas en el frame se devuelven
+            if (god) { let lives = oldLives; }
+            if ((~(score = oldScore)) | (~(lives = oldLives))) {
+                do Hud.update(score, lives);
+            }
+            if ((lives > 0) & (Level.forScore(score) > level)) {
+                let level = Level.forScore(score);
+                do startLevel();
+            }
+
+            // 9. Fondo, memoria del teclado y pausa del frame
+            do Background.step();
+            let prevKey = key;
+            do Sys.wait(Level.frameDelay());
+        }
+
+        do Hud.showGameOver(score);
+        do Game.waitEnter();
+        return;
+    }
+}

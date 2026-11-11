@@ -1,0 +1,27 @@
+// Level: toda la dificultad del juego en un solo lugar.
+// Las demas clases preguntan aqui en vez de tener numeros sueltos,
+// asi que balancear el juego es cambiar solo este archivo.
+
+class Level {
+
+    /** Rapidez maxima de un paquete, en pixeles por frame: 1, 2, 3. */
+    function int speed(int l) { return l; }
+
+    /** Paquetes simultaneos: 3, 4, 5 (Game tiene 5 slots). */
+    function int maxPackets(int l) { return l + 2; }
+
+    /** Frames de vida de un paquete: 300, 250, 200. Menos tiempo
+     *  para decidir en cada nivel. */
+    function int lifetime(int l) { return 350 - (l * 50); }
+
+    /** Nivel que corresponde a un puntaje. */
+    function int forScore(int s) {
+        if (s < 100) { return 1; }
+        if (s < 250) { return 2; }
+        return 3;
+    }
+
+    /** Milisegundos de espera por frame. Depende del computador:
+     *  calibrar en el de la demo. */
+    function int frameDelay() { return 15; }
+}

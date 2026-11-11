@@ -1,0 +1,58 @@
+// Background: fondo movil, dos carriles de "flujo de datos" debajo
+// del campo de juego (filas 245-246 y 250-251).
+
+// La pantalla es memoria: empieza en la direccion 16384 y cada fila
+// son 32 palabras de 16 bits (32 x 16 = 512 pixeles). La fila f
+// empieza en 16384 + (f * 32).
+
+// Cada carril repite el mismo patron de 16 bits en sus 32 palabras.
+// Rotar ese patron 1 bit mueve todo el carril 1 pixel, con solo 32
+// escrituras por fila (128 por frame) en vez de pintar pixel a
+// pixel. El patron actual se lee de la propia pantalla, asi que la
+// clase no guarda estado: no tiene campos ni usa el heap.
+
+class Background {
+
+    /** Escribe el patron p en las 32 palabras de una fila. */
+    function void fill(int row, int p) {
+        var int a, i;
+        let a = 16384 + (row * 32);
+        let i = 0;
+        while (i < 32) {
+            do Memory.poke(a + i, p);
+            let i = i + 1;
+        }
+        return;
+    }
+
+    /** Rota p un bit a la izquierda. Jack no tiene shift: p + p
+     *  desplaza, y el bit 15 que se pierde (p negativo) vuelve a
+     *  entrar por el bit 0. */
+    function int rot(int p) {
+        if (p < 0) { return (p + p) + 1; }
+        return p + p;
+    }
+
+    /** Dibuja los carriles: guiones largos arriba (255 = 8 pixeles
+     *  si, 8 no) y puntos abajo (771 = 2 pixeles cada 8). */
+    function void init() {
+        do Background.fill(245, 255);
+        do Background.fill(246, 255);
+        do Background.fill(250, 771);
+        do Background.fill(251, 771);
+        return;
+    }
+
+    /** Avanza el fondo un frame. El carril de abajo rota dos veces:
+     *  va al doble de velocidad y da sensacion de profundidad. */
+    function void step() {
+        var int p;
+        let p = Background.rot(Memory.peek(24224));     // fila 245
+        do Background.fill(245, p);
+        do Background.fill(246, p);
+        let p = Background.rot(Background.rot(Memory.peek(24384)));     // fila 250
+        do Background.fill(250, p);
+        do Background.fill(251, p);
+        return;
+    }
+}

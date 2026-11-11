@@ -1,0 +1,183 @@
+// Packet: un paquete que viaja por la red (legitimo o malware).
+
+// Fisica: movimiento rectilineo uniforme con velocidad (vx, vy) y
+// rebote elastico contra los bordes del area de juego. En cada
+// frame la posicion avanza segun la velocidad; si el paquete se
+// pasa de un borde, su posicion se refleja respecto a ese borde y
+// la componente de la velocidad perpendicular cambia de signo
+// (igual que la pelota de Pong).
+
+// Cada paquete tiene un tiempo de vida (ttl, "time to live") en
+// frames; al llegar a 0 desaparece. El nombre viene del campo TTL
+// de los paquetes IP reales.
+
+// Game crea 5 paquetes al inicio y los reutiliza: un paquete
+// "inactivo" es un slot libre. Asi no se crean ni se destruyen
+// objetos durante la partida.
+
+class Packet {
+    field int x, y;         // esquina superior izquierda del sprite
+    field int vx, vy;       // velocidad en pixeles por frame
+    field int ttl;          // frames de vida restantes
+    field boolean threat;   // true = malware, false = trafico legitimo
+    field boolean active;   // true = el slot esta en uso
+
+    // Limites del area de juego para la esquina del sprite (16x12):
+    //   x: 0..496   (496 + 15 = 511, ultimo pixel de la pantalla)
+    //   y: 13..229  (debajo del marcador; 229 + 11 = 240, encima
+    //                del flujo de datos)
+
+    /** Crea un slot vacio. spawn() lo activa despues. */
+    constructor Packet new() {
+        let active = false;
+        let x = 0;
+        let y = 13;
+        let vx = 0;
+        let vy = 0;
+        let ttl = 0;
+        let threat = false;
+        return this;
+    }
+
+    /** Libera la memoria del objeto. */
+    method void dispose() {
+        do Memory.deAlloc(this);
+        return;
+    }
+
+    // ---- Consultas de estado ----------------------------------
+
+    method boolean isActive() { return active; }
+    method boolean isThreat() { return threat; }
+
+    /** El paquete se acabo su tiempo de vida. */
+    method boolean expired() { return ttl < 1; }
+
+    /** Libera el slot (el paquete deja de existir en el juego). */
+    method void deactivate() {
+        let active = false;
+        return;
+    }
+
+    // ---- Ciclo de vida ----------------------------------------
+
+    /** Activa el slot con posicion, velocidad y tipo aleatorios. */
+    method void spawn(int level) {
+        var int speed;
+
+        let speed = Level.speed(level);
+
+        // Posicion inicial aleatoria dentro del area de juego
+        let x = Random.range(497);          // 0..496
+        let y = 13 + Random.range(217);     // 13..229
+
+        // Rapidez aleatoria entre 1 y la maxima del nivel en cada
+        // eje, asi no todos los paquetes se mueven igual
+        let vx = 1 + Random.range(speed);
+        let vy = 1 + Random.range(speed);
+
+        // Direccion aleatoria: 50% de probabilidad de invertir cada eje
+        if (Random.range(2) = 0) { let vx = -vx; }
+        if (Random.range(2) = 0) { let vy = -vy; }
+
+        // 50% de probabilidad de que sea malware
+        let threat = (Random.range(2) = 0);
+
+        let ttl = Level.lifetime(level);
+        let active = true;
+        return;
+    }
+
+    /** Integra la fisica un frame y resuelve los rebotes. */
+    method void update() {
+        // ---- Eje X ----
+        let x = x + vx;
+
+        // Rebote en el borde izquierdo (x = 0):
+        // si quedo en x = -3, se refleja a x = 3
+        if (x < 0) {
+            let x = -x;
+            let vx = -vx;
+        }
+
+        // Rebote en el borde derecho (x = 496):
+        // reflejo respecto a 496 -> x' = 496 - (x - 496) = 992 - x
+        if (x > 496) {
+            let x = 992 - x;
+            let vx = -vx;
+        }
+
+        // ---- Eje Y ----
+        let y = y + vy;
+
+        // Rebote arriba (y = 13): y' = 13 + (13 - y) = 26 - y
+        if (y < 13) {
+            let y = 26 - y;
+            let vy = -vy;
+        }
+
+        // Rebote abajo (y = 229): y' = 229 - (y - 229) = 458 - y
+        if (y > 229) {
+            let y = 458 - y;
+            let vy = -vy;
+        }
+
+        // Consumir un frame de vida
+        let ttl = ttl - 1;
+        return;
+    }
+
+    /** Indica si el punto (px, py) cae dentro del sprite.
+     *  Se usa para saber si el disparo de la mira le acerto. */
+    method boolean contains(int px, int py) {
+        // Basta con que el punto se salga por un lado para fallar
+        if (px < x) { return false; }
+        if (px > (x + 15)) { return false; }
+        if (py < y) { return false; }
+        if (py > (y + 11)) { return false; }
+        return true;
+    }
+
+    /** Choque entre dos paquetes. Tienen la misma masa y el choque
+     *  es elastico, asi que intercambian la velocidad en el eje del
+     *  choque (se conservan el momento y la energia). */
+    method void collide(Packet o) {
+        // El otro paquete visto como arreglo: b[0..3] = x, y, vx, vy
+        // (depende del orden de los field; evita 6 getters/setters)
+        var Array b;
+        var int t;
+        let b = o;
+
+        // Se tocan si sus cajas de 16x12 se solapan en los dos ejes
+        if ((Math.abs(x - b[0]) < 16) & (Math.abs(y - b[1]) < 12)) {
+            // Solo si se estan acercando en ese eje (distancia y
+            // velocidad relativa de signo contrario): sin esto se
+            // quedarian pegados intercambiando en cada frame
+            if (((x - b[0]) * (vx - b[2])) < 0) {
+                let t = vx;
+                let vx = b[2];
+                let b[2] = t;
+            }
+            if (((y - b[1]) * (vy - b[3])) < 0) {
+                let t = vy;
+                let vy = b[3];
+                let b[3] = t;
+            }
+        }
+        return;
+    }
+
+    // ---- Dibujo -----------------------------------------------
+
+    /** Dibuja el paquete con la forma del nivel actual. */
+    method void draw(int level) {
+        do Sprites.draw(x, y, level, threat);
+        return;
+    }
+
+    /** Borra el paquete de su posicion actual. */
+    method void erase() {
+        do Sprites.erase(x, y);
+        return;
+    }
+}

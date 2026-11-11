@@ -1,0 +1,55 @@
+// Crosshair: la mira que controla el jugador con las flechas.
+// Se dibuja como una cruz de 11x11 con un punto en el centro.
+// (x, y) es el centro, que es el punto que se usa para el disparo.
+
+class Crosshair {
+    field int x, y;
+
+    constructor Crosshair new(int ax, int ay) {
+        let x = ax;
+        let y = ay;
+        return this;
+    }
+
+    method void dispose() {
+        do Memory.deAlloc(this);
+        return;
+    }
+
+    method int getX() { return x; }
+    method int getY() { return y; }
+
+    /** Mueve la mira y la mantiene dentro del area de juego. */
+    method void move(int dx, int dy) {
+        let x = x + dx;
+        let y = y + dy;
+        if (x < 5) { let x = 5; }
+        if (x > 506) { let x = 506; }
+        if (y < 18) { let y = 18; }
+        if (y > 235) { let y = 235; }
+        return;
+    }
+
+    method void draw() {
+        do Screen.setColor(true);
+        do Screen.drawLine(x - 5, y, x - 2, y);
+        do Screen.drawLine(x + 2, y, x + 5, y);
+        do Screen.drawLine(x, y - 5, x, y - 2);
+        do Screen.drawLine(x, y + 2, x, y + 5);
+        do Screen.drawPixel(x, y);
+        return;
+    }
+
+    method void erase() {
+        do Screen.setColor(false);
+        do Screen.drawRectangle(x - 5, y - 5, x + 5, y + 5);
+        return;
+    }
+
+    /** Destello de un frame al disparar. */
+    method void flash() {
+        do Screen.setColor(true);
+        do Screen.drawCircle(x, y, 3);
+        return;
+    }
+}

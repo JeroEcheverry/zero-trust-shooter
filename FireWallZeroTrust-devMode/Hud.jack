@@ -1,0 +1,103 @@
+// Hud: todo el texto del juego (pantallas y marcador).
+
+// Cada texto entre comillas crea un String nuevo en el heap cada
+// vez que se ejecuta. Por eso todo texto pasa por Hud.print, que
+// lo libera despues de imprimirlo, y durante la partida solo se
+// imprimen numeros (Hud.update).
+
+// La pantalla de texto tiene 23 filas x 64 columnas; cada fila
+// mide 11 pixeles de alto y cada columna 8 de ancho.
+
+class Hud {
+
+    /** Imprime un texto en (fila, columna) y libera su memoria. */
+    function void print(int row, int col, String s) {
+        do Output.moveCursor(row, col);
+        do Output.printString(s);
+        do s.dispose();
+        return;
+    }
+
+    /** Pantalla de inicio: titulo y controles. */
+    function void showStart() {
+        do Screen.clearScreen();
+        do Hud.print(4, 22, "FIREWALL: ZERO TRUST");
+        do Hud.print(8, 11, "Eres el firewall. Dispara solo al malware.");
+        do Hud.print(11, 21, "Flechas: mover la mira");
+        do Hud.print(12, 21, "Espacio: disparar");
+        do Hud.print(14, 5, "Disparar a un legitimo o dejar pasar malware: -1 vida");
+        do Hud.print(18, 23, "ENTER para empezar");
+        do Hud.print(21, 20, "MODO DEV: M abre el menu");
+        return;
+    }
+
+    /** Presentacion del nivel: muestra como se ven el legitimo y
+     *  el malware, porque la forma cambia en cada nivel. */
+    function void showLevel(int l) {
+        do Screen.clearScreen();
+        do Hud.print(4, 28, "NIVEL ");
+        do Output.printInt(l);
+
+        // La fila de texto 9 empieza en y = 99 y la 13 en y = 143:
+        // cada sprite queda alineado con su rotulo
+        do Sprites.draw(160, 99, l, false);
+        do Hud.print(9, 24, "Legitimo: dejalo pasar (+2)");
+        do Sprites.draw(160, 143, l, true);
+        do Hud.print(13, 24, "Malware: disparale (+10)");
+
+        do Hud.print(18, 22, "ENTER para continuar");
+        return;
+    }
+
+    /** Pantalla final con el puntaje. */
+    function void showGameOver(int score) {
+        do Screen.clearScreen();
+        do Hud.print(8, 27, "GAME OVER");
+        do Hud.print(11, 26, "Puntaje: ");
+        do Output.printInt(score);
+        do Hud.print(16, 20, "ENTER para volver a jugar");
+        return;
+    }
+
+    /** Menu de desarrollador (solo existe en la carpeta devMode). */
+    function void showDev(boolean god) {
+        do Screen.clearScreen();
+        do Hud.print(3, 23, "MENU DE DESARROLLADOR");
+        do Hud.print(7, 20, "1, 2, 3  Ir al nivel 1, 2 o 3");
+        do Hud.print(9, 20, "4        Restaurar las 3 vidas");
+        if (god) {
+            do Hud.print(11, 20, "5        Modo dios: ON");
+        } else {
+            do Hud.print(11, 20, "5        Modo dios: OFF");
+        }
+        do Hud.print(13, 20, "6        Forzar game over");
+        do Hud.print(17, 20, "ENTER    Volver al juego");
+        return;
+    }
+
+    /** Prepara la pantalla de juego: rotulos fijos del marcador y
+     *  las dos lineas que encierran el campo (y = 13..240). El
+     *  nivel se imprime aqui porque no cambia durante el nivel. */
+    function void frame(int level) {
+        do Screen.clearScreen();
+        do Hud.print(0, 1, "SCORE");
+        do Hud.print(0, 27, "VIDAS");
+        do Hud.print(0, 40, "M=DEV");
+        do Hud.print(0, 53, "NIVEL ");
+        do Output.printInt(level);
+        do Screen.setColor(true);
+        do Screen.drawLine(0, 12, 511, 12);
+        do Screen.drawLine(0, 242, 511, 242);
+        return;
+    }
+
+    /** Actualiza solo los numeros. No hace falta borrar antes: el
+     *  puntaje nunca baja y las vidas siempre tienen un digito. */
+    function void update(int score, int lives) {
+        do Output.moveCursor(0, 7);
+        do Output.printInt(score);
+        do Output.moveCursor(0, 33);
+        do Output.printInt(lives);
+        return;
+    }
+}

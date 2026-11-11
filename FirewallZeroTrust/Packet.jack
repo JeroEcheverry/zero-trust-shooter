@@ -138,6 +138,35 @@ class Packet {
         return true;
     }
 
+    /** Choque entre dos paquetes. Tienen la misma masa y el choque
+     *  es elastico, asi que intercambian la velocidad en el eje del
+     *  choque (se conservan el momento y la energia). */
+    method void collide(Packet o) {
+        // El otro paquete visto como arreglo: b[0..3] = x, y, vx, vy
+        // (depende del orden de los field; evita 6 getters/setters)
+        var Array b;
+        var int t;
+        let b = o;
+
+        // Se tocan si sus cajas de 16x12 se solapan en los dos ejes
+        if ((Math.abs(x - b[0]) < 16) & (Math.abs(y - b[1]) < 12)) {
+            // Solo si se estan acercando en ese eje (distancia y
+            // velocidad relativa de signo contrario): sin esto se
+            // quedarian pegados intercambiando en cada frame
+            if (((x - b[0]) * (vx - b[2])) < 0) {
+                let t = vx;
+                let vx = b[2];
+                let b[2] = t;
+            }
+            if (((y - b[1]) * (vy - b[3])) < 0) {
+                let t = vy;
+                let vy = b[3];
+                let b[3] = t;
+            }
+        }
+        return;
+    }
+
     // ---- Dibujo -----------------------------------------------
 
     /** Dibuja el paquete con la forma del nivel actual. */
