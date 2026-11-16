@@ -1,14 +1,19 @@
 // Main: punto de entrada. Una partida tras otra, para siempre.
-// Cada partida se libera antes de crear la siguiente, asi que
-// jugar muchas veces seguidas no llena el heap.
+
+// Los textos (Hud.init) y la partida (Game.new) se crean UNA sola vez
+// y se reutilizan: Game.run reinicia puntaje, vidas y nivel al
+// empezar. En el VM Emulator la memoria liberada casi no se puede
+// volver a usar, asi que crear y destruir una partida en cada juego
+// iba llenando el heap hasta "Heap overflow". Asi, despues de
+// arrancar, el juego no vuelve a pedir memoria.
 
 class Main {
     function void main() {
         var Game game;
+        do Hud.init();
+        let game = Game.new();
         while (true) {
-            let game = Game.new();
             do game.run();
-            do game.dispose();
         }
         return;
     }
