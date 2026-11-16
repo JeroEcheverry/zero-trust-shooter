@@ -1,35 +1,97 @@
 // Hud: todo el texto del juego (pantallas y marcador).
+// VERSION DEV: igual a la normal mas los textos del menu de
+// desarrollador (showDev) y dos rotulos.
 
-// Cada texto entre comillas crea un String nuevo en el heap cada
-// vez que se ejecuta. Por eso todo texto pasa por Hud.print, que
-// lo libera despues de imprimirlo, y durante la partida solo se
-// imprimen numeros (Hud.update).
+// Memoria: cada texto entre comillas crea un String nuevo en el heap
+// CADA VEZ que esa linea se ejecuta, y en el VM Emulator esa memoria
+// no se recupera del todo aunque se haga dispose() (el arreglo de
+// caracteres nunca se libera y los bloques liberados casi no se
+// reutilizan). Imprimir textos una y otra vez termina en
+// "Heap overflow". Por eso cada texto se crea UNA sola vez, en
+// Hud.init, y se guarda en una variable static; las pantallas solo
+// reutilizan esos Strings. Durante la partida solo se imprimen
+// numeros (Hud.update), que no piden memoria.
 
 // La pantalla de texto tiene 23 filas x 64 columnas; cada fila
 // mide 11 pixeles de alto y cada columna 8 de ancho.
 
 class Hud {
+    // Pantalla de inicio
+    static String title, intro1, intro2, intro3, keys1, keys2, rule, enterStart;
+    // Presentacion de cada nivel: titulo y dos lineas de historia
+    static String l1t, l1a, l1b, l2t, l2a, l2b, l3t, l3a, l3b;
+    static String legit, threat, enterNext;
+    // Game over
+    static String lost, gameOver, finalScore, enterAgain;
+    // Marcador
+    static String scoreLbl, livesLbl, levelLbl;
+    // DEV: menu de desarrollador
+    static String devHint, devLbl, devTitle, dev123, dev4, dev5on, dev5off, dev6, devBack;
 
-    /** Imprime un texto en (fila, columna) y libera su memoria. */
+    /** Crea todos los textos. Main lo llama una sola vez, al arrancar. */
+    function void init() {
+        let title = "FIREWALL: ZERO TRUST";
+        let intro1 = "Eres el nuevo ingeniero de seguridad de la empresa.";
+        let intro2 = "Tu mision: ser el firewall de la red. Bloquea las amenazas";
+        let intro3 = "y deja pasar el trafico legitimo.";
+        let keys1 = "Flechas: mover la mira";
+        let keys2 = "Espacio: disparar";
+        let rule = "Disparar a un legitimo o dejar pasar malware: -1 vida";
+        let enterStart = "ENTER para empezar";
+
+        let l1t = "NIVEL 1: BANDEJA DE ENTRADA";
+        let l1a = "Es tu primer dia. Llegan correos a la bandeja de la empresa.";
+        let l1b = "Algunos son phishing: bloquealos antes de que los abran.";
+        let l2t = "NIVEL 2: RED INTERNA";
+        let l2a = "Un gusano se metio en la red y salta de equipo en equipo.";
+        let l2b = "Detenlo sin cortar el trafico normal de la empresa.";
+        let l3t = "NIVEL 3: SERVIDOR BAJO ATAQUE";
+        let l3a = "Atacan el servidor principal y esta lleno de bugs.";
+        let l3b = "Hay mas paquetes y van mas rapido. No dejes caer el servidor.";
+        let legit = "Legitimo: dejalo pasar (+2)";
+        let threat = "Malware: disparale (+10)";
+        let enterNext = "ENTER para continuar";
+
+        let lost = "LA RED FUE COMPROMETIDA";
+        let gameOver = "GAME OVER";
+        let finalScore = "Puntaje: ";
+        let enterAgain = "ENTER para volver a jugar";
+
+        let scoreLbl = "SCORE";
+        let livesLbl = "VIDAS";
+        let levelLbl = "NIVEL ";
+
+        let devHint = "MODO DEV: M abre el menu";
+        let devLbl = "M=DEV";
+        let devTitle = "MENU DE DESARROLLADOR";
+        let dev123 = "1, 2, 3  Ir al nivel 1, 2 o 3";
+        let dev4 = "4        Restaurar las 3 vidas";
+        let dev5on = "5        Modo dios: ON";
+        let dev5off = "5        Modo dios: OFF";
+        let dev6 = "6        Forzar game over";
+        let devBack = "ENTER    Volver al juego";
+        return;
+    }
+
+    /** Imprime un texto en (fila, columna). No lo libera: se reutiliza. */
     function void print(int row, int col, String s) {
         do Output.moveCursor(row, col);
         do Output.printString(s);
-        do s.dispose();
         return;
     }
 
     /** Pantalla de inicio: la historia, los controles y la regla. */
     function void showStart() {
         do Screen.clearScreen();
-        do Hud.print(3, 22, "FIREWALL: ZERO TRUST");
-        do Hud.print(6, 6, "Eres el nuevo ingeniero de seguridad de la empresa.");
-        do Hud.print(7, 3, "Tu mision: ser el firewall de la red. Bloquea las amenazas");
-        do Hud.print(8, 15, "y deja pasar el trafico legitimo.");
-        do Hud.print(11, 21, "Flechas: mover la mira");
-        do Hud.print(12, 21, "Espacio: disparar");
-        do Hud.print(14, 5, "Disparar a un legitimo o dejar pasar malware: -1 vida");
-        do Hud.print(18, 23, "ENTER para empezar");
-        do Hud.print(21, 20, "MODO DEV: M abre el menu");
+        do Hud.print(3, 22, title);
+        do Hud.print(6, 6, intro1);
+        do Hud.print(7, 3, intro2);
+        do Hud.print(8, 15, intro3);
+        do Hud.print(11, 21, keys1);
+        do Hud.print(12, 21, keys2);
+        do Hud.print(14, 5, rule);
+        do Hud.print(18, 23, enterStart);
+        do Hud.print(21, 20, devHint);
         return;
     }
 
@@ -40,56 +102,56 @@ class Hud {
 
         // Titulo y contexto de cada nivel (dos lineas)
         if (l = 1) {
-            do Hud.print(2, 18, "NIVEL 1: BANDEJA DE ENTRADA");
-            do Hud.print(4, 2, "Es tu primer dia. Llegan correos a la bandeja de la empresa.");
-            do Hud.print(5, 4, "Algunos son phishing: bloquealos antes de que los abran.");
+            do Hud.print(2, 18, l1t);
+            do Hud.print(4, 2, l1a);
+            do Hud.print(5, 4, l1b);
         }
         if (l = 2) {
-            do Hud.print(2, 22, "NIVEL 2: RED INTERNA");
-            do Hud.print(4, 3, "Un gusano se metio en la red y salta de equipo en equipo.");
-            do Hud.print(5, 6, "Detenlo sin cortar el trafico normal de la empresa.");
+            do Hud.print(2, 22, l2t);
+            do Hud.print(4, 3, l2a);
+            do Hud.print(5, 6, l2b);
         }
         if (l = 3) {
-            do Hud.print(2, 17, "NIVEL 3: SERVIDOR BAJO ATAQUE");
-            do Hud.print(4, 7, "Atacan el servidor principal y esta lleno de bugs.");
-            do Hud.print(5, 2, "Hay mas paquetes y van mas rapido. No dejes caer el servidor.");
+            do Hud.print(2, 17, l3t);
+            do Hud.print(4, 7, l3a);
+            do Hud.print(5, 2, l3b);
         }
 
         // La fila de texto 9 empieza en y = 99 y la 13 en y = 143:
         // cada sprite queda alineado con su rotulo
         do Sprites.draw(160, 99, l, false);
-        do Hud.print(9, 24, "Legitimo: dejalo pasar (+2)");
+        do Hud.print(9, 24, legit);
         do Sprites.draw(160, 143, l, true);
-        do Hud.print(13, 24, "Malware: disparale (+10)");
+        do Hud.print(13, 24, threat);
 
-        do Hud.print(18, 22, "ENTER para continuar");
+        do Hud.print(18, 22, enterNext);
         return;
     }
 
     /** Pantalla final con el puntaje. */
     function void showGameOver(int score) {
         do Screen.clearScreen();
-        do Hud.print(6, 20, "LA RED FUE COMPROMETIDA");
-        do Hud.print(8, 27, "GAME OVER");
-        do Hud.print(11, 26, "Puntaje: ");
+        do Hud.print(6, 20, lost);
+        do Hud.print(8, 27, gameOver);
+        do Hud.print(11, 26, finalScore);
         do Output.printInt(score);
-        do Hud.print(16, 20, "ENTER para volver a jugar");
+        do Hud.print(16, 20, enterAgain);
         return;
     }
 
     /** Menu de desarrollador (solo existe en la carpeta devMode). */
     function void showDev(boolean god) {
         do Screen.clearScreen();
-        do Hud.print(3, 23, "MENU DE DESARROLLADOR");
-        do Hud.print(7, 20, "1, 2, 3  Ir al nivel 1, 2 o 3");
-        do Hud.print(9, 20, "4        Restaurar las 3 vidas");
+        do Hud.print(3, 23, devTitle);
+        do Hud.print(7, 20, dev123);
+        do Hud.print(9, 20, dev4);
         if (god) {
-            do Hud.print(11, 20, "5        Modo dios: ON");
+            do Hud.print(11, 20, dev5on);
         } else {
-            do Hud.print(11, 20, "5        Modo dios: OFF");
+            do Hud.print(11, 20, dev5off);
         }
-        do Hud.print(13, 20, "6        Forzar game over");
-        do Hud.print(17, 20, "ENTER    Volver al juego");
+        do Hud.print(13, 20, dev6);
+        do Hud.print(17, 20, devBack);
         return;
     }
 
@@ -98,10 +160,10 @@ class Hud {
      *  nivel se imprime aqui porque no cambia durante el nivel. */
     function void frame(int level) {
         do Screen.clearScreen();
-        do Hud.print(0, 1, "SCORE");
-        do Hud.print(0, 27, "VIDAS");
-        do Hud.print(0, 40, "M=DEV");
-        do Hud.print(0, 53, "NIVEL ");
+        do Hud.print(0, 1, scoreLbl);
+        do Hud.print(0, 27, livesLbl);
+        do Hud.print(0, 40, devLbl);
+        do Hud.print(0, 53, levelLbl);
         do Output.printInt(level);
         do Screen.setColor(true);
         do Screen.drawLine(0, 12, 511, 12);
