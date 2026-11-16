@@ -35,7 +35,8 @@ class Game {
         return this;
     }
 
-    /** Libera todo lo que creo el constructor. */
+    /** Libera todo lo que creo el constructor. Main ya no lo llama:
+     *  reutiliza la misma partida (ver Main). */
     method void dispose() {
         var int i;
         var Packet p;
@@ -121,6 +122,13 @@ class Game {
     method void run() {
         var int key, prevKey, i, j, n, oldScore, oldLives;
         var Packet p, q;
+
+        // Reiniciar la partida: Main usa el mismo objeto Game para
+        // todas las partidas, asi que el estado de la anterior se borra
+        // aqui (los paquetes se vacian en startLevel)
+        let score = 0;
+        let lives = 3;
+        let god = false;    // DEV
 
         // Pantalla de inicio. Las vueltas que da este loop hasta el
         // ENTER son la semilla: cada partida sale distinta.
