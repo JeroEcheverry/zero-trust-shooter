@@ -7,22 +7,24 @@
 // Game: una partida completa. Orquesta las demas clases y lleva el
 // puntaje, las vidas y el nivel.
 
-// Todos los objetos (la mira y los 5 paquetes) se crean una sola
+// Todos los objetos (la mira y los paquetes) se crean una sola
 // vez en el constructor y se reutilizan: durante la partida no se
 // pide ni se libera memoria, asi que el heap no se puede llenar.
 
 class Game {
     field Crosshair cross;
-    field Array packets;    // 5 slots de Packet, activos o libres
+    field Array packets;    // slots de Packet, activos o libres
+    field int slots;        // cuantos slots hay (Level.slots)
     field int score, lives, level;
     field boolean god;      // DEV: modo dios, las vidas no bajan
 
     constructor Game new() {
         var int i;
         let cross = Crosshair.new(256, 128);
-        let packets = Array.new(5);
+        let slots = Level.slots();
+        let packets = Array.new(slots);
         let i = 0;
-        while (i < 5) {
+        while (i < slots) {
             let packets[i] = Packet.new();
             let i = i + 1;
         }
@@ -38,7 +40,7 @@ class Game {
         var int i;
         var Packet p;
         let i = 0;
-        while (i < 5) {
+        while (i < slots) {
             let p = packets[i];
             do p.dispose();
             let i = i + 1;
@@ -70,7 +72,7 @@ class Game {
         do Hud.update(score, lives);
         do Background.init();
         let i = 0;
-        while (i < 5) {
+        while (i < slots) {
             let p = packets[i];
             do p.deactivate();
             let i = i + 1;
@@ -159,7 +161,7 @@ class Game {
             // 3. Borrar todos los paquetes antes de mover alguno:
             //    asi el borrado de uno no muerde a otro ya dibujado
             let i = 0;
-            while (i < 5) {
+            while (i < slots) {
                 let p = packets[i];
                 if (p.isActive()) { do p.erase(); }
                 let i = i + 1;
@@ -170,7 +172,7 @@ class Game {
             //    soltarlo entre disparos)
             if ((key = 32) & (~(prevKey = 32))) {
                 let i = 0;
-                while (i < 5) {
+                while (i < slots) {
                     let p = packets[i];
                     if (p.isActive() & p.contains(cross.getX(), cross.getY())) {
                         if (p.isThreat()) {
@@ -179,7 +181,7 @@ class Game {
                             let lives = lives - 1;      // falso positivo
                         }
                         do p.deactivate();
-                        let i = 5;      // un disparo, un paquete
+                        let i = slots;  // un disparo, un paquete
                     }
                     let i = i + 1;
                 }
@@ -212,10 +214,10 @@ class Game {
 
             // 6. Choques entre paquetes: cada par (i, j) una sola vez
             let i = 0;
-            while (i < 4) {
+            while (i < (slots - 1)) {
                 let p = packets[i];
                 let j = i + 1;
-                while (j < 5) {
+                while (j < slots) {
                     let q = packets[j];
                     if (p.isActive() & q.isActive()) { do p.collide(q); }
                     let j = j + 1;
@@ -225,7 +227,7 @@ class Game {
 
             // 7. Dibujar todo; la mira al final para que quede encima
             let i = 0;
-            while (i < 5) {
+            while (i < slots) {
                 let p = packets[i];
                 if (p.isActive()) { do p.draw(level); }
                 let i = i + 1;

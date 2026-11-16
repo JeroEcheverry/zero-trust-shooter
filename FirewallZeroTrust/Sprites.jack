@@ -39,10 +39,10 @@ class Sprites {
         return;
     }
 
-    /** Borra el sprite pintando de blanco todo su rectangulo. */
+    /** Borra el sprite: devuelve el fondo (el circuito) en las 12
+     *  filas que ocupa, en vez de pintarlas de blanco. */
     function void erase(int x, int y) {
-        do Screen.setColor(false);
-        do Screen.drawRectangle(x, y, x + 15, y + 11);
+        do Background.restore(x, y, 12);
         return;
     }
 

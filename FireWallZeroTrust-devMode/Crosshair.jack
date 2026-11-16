@@ -40,9 +40,10 @@ class Crosshair {
         return;
     }
 
+    /** Borra la mira devolviendo el fondo en el cuadrado de 11x11
+     *  que ocupa (y el destello del disparo, que cabe adentro). */
     method void erase() {
-        do Screen.setColor(false);
-        do Screen.drawRectangle(x - 5, y - 5, x + 5, y + 5);
+        do Background.restore(x - 5, y - 5, 11);
         return;
     }
 

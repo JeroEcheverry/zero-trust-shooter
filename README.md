@@ -28,11 +28,11 @@ Empiezas con 3 vidas.
 
 | Nivel | Desde | Escenario | Paquetes | Velocidad |
 |---|---|---|---|---|
-| 1 | 0 pts | Correo: sobre con sello vs. sobre con cara de malvado | 3 | 1 px/frame |
-| 2 | 100 pts | Red interna: paquete de datos vs. gusano ondulado | 4 | hasta 2 px/frame |
-| 3 | 250 pts | Servidor: verificado (chulo) vs. con un bug | 5 | hasta 3 px/frame |
+| 1 | 0 pts | Correo: sobre con sello vs. sobre con cara de malvado | 4 | 1 px/frame |
+| 2 | 100 pts | Red interna: paquete de datos vs. gusano ondulado | 6 | hasta 2 px/frame |
+| 3 | 250 pts | Servidor: verificado (chulo) vs. con un bug | 8 | hasta 3 px/frame |
 
-Al empezar cada nivel se muestra cómo se ven el legítimo y el malware. Los paquetes rebotan en los bordes y chocan entre sí.
+Eres el nuevo ingeniero de seguridad de la empresa. Al empezar cada nivel se cuenta qué está pasando y se muestra cómo se ven el legítimo y el malware. Los paquetes rebotan en los bordes y chocan entre sí, sobre un fondo de circuito.
 
 ## Cómo ejecutarlo
 

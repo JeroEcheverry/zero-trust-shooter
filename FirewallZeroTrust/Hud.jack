@@ -18,11 +18,13 @@ class Hud {
         return;
     }
 
-    /** Pantalla de inicio: titulo y controles. */
+    /** Pantalla de inicio: la historia, los controles y la regla. */
     function void showStart() {
         do Screen.clearScreen();
-        do Hud.print(4, 22, "FIREWALL: ZERO TRUST");
-        do Hud.print(8, 11, "Eres el firewall. Dispara solo al malware.");
+        do Hud.print(3, 22, "FIREWALL: ZERO TRUST");
+        do Hud.print(6, 6, "Eres el nuevo ingeniero de seguridad de la empresa.");
+        do Hud.print(7, 3, "Tu mision: ser el firewall de la red. Bloquea las amenazas");
+        do Hud.print(8, 15, "y deja pasar el trafico legitimo.");
         do Hud.print(11, 21, "Flechas: mover la mira");
         do Hud.print(12, 21, "Espacio: disparar");
         do Hud.print(14, 5, "Disparar a un legitimo o dejar pasar malware: -1 vida");
@@ -30,12 +32,27 @@ class Hud {
         return;
     }
 
-    /** Presentacion del nivel: muestra como se ven el legitimo y
-     *  el malware, porque la forma cambia en cada nivel. */
+    /** Presentacion del nivel: un poco de historia y como se ven el
+     *  legitimo y el malware, porque la forma cambia en cada nivel. */
     function void showLevel(int l) {
         do Screen.clearScreen();
-        do Hud.print(4, 28, "NIVEL ");
-        do Output.printInt(l);
+
+        // Titulo y contexto de cada nivel (dos lineas)
+        if (l = 1) {
+            do Hud.print(2, 18, "NIVEL 1: BANDEJA DE ENTRADA");
+            do Hud.print(4, 2, "Es tu primer dia. Llegan correos a la bandeja de la empresa.");
+            do Hud.print(5, 4, "Algunos son phishing: bloquealos antes de que los abran.");
+        }
+        if (l = 2) {
+            do Hud.print(2, 22, "NIVEL 2: RED INTERNA");
+            do Hud.print(4, 3, "Un gusano se metio en la red y salta de equipo en equipo.");
+            do Hud.print(5, 6, "Detenlo sin cortar el trafico normal de la empresa.");
+        }
+        if (l = 3) {
+            do Hud.print(2, 17, "NIVEL 3: SERVIDOR BAJO ATAQUE");
+            do Hud.print(4, 7, "Atacan el servidor principal y esta lleno de bugs.");
+            do Hud.print(5, 2, "Hay mas paquetes y van mas rapido. No dejes caer el servidor.");
+        }
 
         // La fila de texto 9 empieza en y = 99 y la 13 en y = 143:
         // cada sprite queda alineado con su rotulo
@@ -51,6 +68,7 @@ class Hud {
     /** Pantalla final con el puntaje. */
     function void showGameOver(int score) {
         do Screen.clearScreen();
+        do Hud.print(6, 20, "LA RED FUE COMPROMETIDA");
         do Hud.print(8, 27, "GAME OVER");
         do Hud.print(11, 26, "Puntaje: ");
         do Output.printInt(score);

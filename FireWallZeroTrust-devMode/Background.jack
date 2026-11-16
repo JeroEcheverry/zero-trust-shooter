@@ -1,17 +1,169 @@
-// Background: fondo movil, dos carriles de "flujo de datos" debajo
-// del campo de juego (filas 245-246 y 250-251).
+// Background: todo lo que esta detras del juego.
+//   1. El circuito: trazas de placa electronica que salen de los
+//      bordes hacia el centro, que queda despejado para no tapar
+//      los paquetes. Se dibuja una vez por nivel.
+//   2. El flujo de datos: dos carriles debajo del campo de juego
+//      (filas 245-246 y 250-251) que se mueven en cada frame.
 
 // La pantalla es memoria: empieza en la direccion 16384 y cada fila
 // son 32 palabras de 16 bits (32 x 16 = 512 pixeles). La fila f
 // empieza en 16384 + (f * 32).
 
-// Cada carril repite el mismo patron de 16 bits en sus 32 palabras.
-// Rotar ese patron 1 bit mueve todo el carril 1 pixel, con solo 32
-// escrituras por fila (128 por frame) en vez de pintar pixel a
-// pixel. El patron actual se lee de la propia pantalla, asi que la
-// clase no guarda estado: no tiene campos ni usa el heap.
+// El problema del circuito: los paquetes y la mira se borran
+// pintando de blanco el rectangulo que ocupan, y eso le dejaria
+// huecos. La solucion: al dibujar el circuito se guarda una copia
+// del campo de juego en un arreglo (buf). Para borrar algo, en vez
+// de pintar blanco se copian de vuelta desde buf las palabras que
+// ocupaba: el circuito reaparece debajo, exacto. Es la misma idea
+// del "back buffer" de las consolas viejas.
 
 class Background {
+    static Array buf;   // copia del campo de juego (filas 13 a 240)
+    static Array scr;   // la pantalla vista como arreglo, desde la fila 13
+
+    // ---- Circuito y copia del fondo ---------------------------
+
+    /** Dibuja el circuito, guarda la copia del fondo y pinta los
+     *  carriles. Se llama al empezar cada nivel, con la pantalla
+     *  recien limpiada. */
+    function void init() {
+        // La copia se pide una sola vez y se reutiliza en todos los
+        // niveles y partidas: 228 filas x 32 palabras + 1 (ver restore)
+        if (buf = null) {
+            let buf = Array.new(7297);
+        }
+        let scr = 16800;    // 16384 + (13 * 32): la fila 13
+
+        do Background.circuit();
+        do Background.save();
+
+        // Carriles del flujo de datos: guiones largos arriba
+        // (255 = 8 pixeles si, 8 no) y puntos abajo (771 = 2 pixeles
+        // cada 8)
+        do Background.fill(245, 255);
+        do Background.fill(246, 255);
+        do Background.fill(250, 771);
+        do Background.fill(251, 771);
+        return;
+    }
+
+    /** Copia el campo de juego a buf. Las filas 13 a 240 son un solo
+     *  bloque seguido de memoria, asi que basta un indice. */
+    function void save() {
+        var int i;
+        let i = 0;
+        while (i < 7297) {
+            let buf[i] = scr[i];
+            let i = i + 1;
+        }
+        return;
+    }
+
+    /** Devuelve el fondo en un rectangulo de h filas cuya esquina
+     *  superior izquierda es (x, y). Sirve para todo lo que mide
+     *  16 pixeles de ancho o menos (paquetes y mira): eso ocupa a lo
+     *  sumo 2 palabras por fila, asi que se copian siempre 2.
+     *  Si x esta en la ultima palabra de la fila, la segunda palabra
+     *  es la primera de la fila siguiente: copiarla no hace dano
+     *  porque es fondo; por eso buf tiene una palabra de mas. */
+    function void restore(int x, int y, int h) {
+        var int o, r;
+        // Palabra donde empieza el rectangulo, contada desde la fila 13
+        let o = ((y - 13) * 32) + (x / 16);
+        let r = 0;
+        while (r < h) {
+            let scr[o] = buf[o];
+            let scr[o + 1] = buf[o + 1];
+            let o = o + 32;     // misma columna, fila siguiente
+            let r = r + 1;
+        }
+        return;
+    }
+
+    /** Pad de soldadura: cuadrado de 5x5 con el centro vacio. */
+    function void pad(int x, int y) {
+        do Screen.setColor(true);
+        do Screen.drawRectangle(x - 2, y - 2, x + 2, y + 2);
+        do Screen.setColor(false);
+        do Screen.drawRectangle(x - 1, y - 1, x + 1, y + 1);
+        do Screen.setColor(true);
+        return;
+    }
+
+    /** Una traza de un abanico lateral, en los dos lados a la vez
+     *  (el lado derecho es el espejo: x se vuelve 511 - x). Sale del
+     *  borde en la fila ye, sigue recta hasta xa y gira 45 grados
+     *  hasta la fila yi, donde termina en un pad. */
+    function void fanTrace(int ye, int xa, int yi) {
+        var int py;
+        // El pad queda 2 pixeles mas alla de la punta de la diagonal
+        let py = 2;
+        if (yi < ye) { let py = -2; }
+
+        do Screen.drawLine(0, ye, xa, ye);
+        do Screen.drawLine(xa, ye, xa + 22, yi);
+        do Background.pad(xa + 24, yi + py);
+
+        do Screen.drawLine(511 - xa, ye, 511, ye);
+        do Screen.drawLine(489 - xa, yi, 511 - xa, ye);
+        do Background.pad(487 - xa, yi + py);
+        return;
+    }
+
+    /** Dibuja todo el circuito. Centro de la pantalla: (256, 126). */
+    function void circuit() {
+        var int k, xa, x, h;
+        do Screen.setColor(true);
+
+        // 1. Cuatro abanicos, uno por esquina, de 5 trazas cada uno.
+        //    La traza mas lejana del centro gira mas tarde (xa crece
+        //    14 por traza), asi las diagonales quedan paralelas y no
+        //    se cruzan.
+        let k = 0;
+        let xa = 30;
+        while (k < 5) {
+            do Background.fanTrace(80 - (k * 14), xa, 102 - (k * 14));     // arriba
+            do Background.fanTrace(172 + (k * 14), xa, 150 + (k * 14));    // abajo
+            let xa = xa + 14;
+            let k = k + 1;
+        }
+
+        // 2. Dos trazas cortas a cada lado, a la altura del centro
+        do Screen.drawLine(0, 120, 56, 120);
+        do Screen.drawLine(0, 132, 56, 132);
+        do Screen.drawLine(455, 120, 511, 120);
+        do Screen.drawLine(455, 132, 511, 132);
+        do Background.pad(59, 120);
+        do Background.pad(59, 132);
+        do Background.pad(452, 120);
+        do Background.pad(452, 132);
+
+        // 3. Trazas cortas que bajan del borde de arriba y suben del
+        //    de abajo, inclinadas alejandose del centro. Las de largo
+        //    alternan (9 o 14 pixeles de diagonal).
+        let k = 0;
+        while (k < 6) {
+            if (k < 3) {
+                let x = 140 + (k * 32);     // lado izquierdo
+            } else {
+                let x = 212 + (k * 32);     // lado derecho: 308, 340, 372
+            }
+            let h = 9 + ((k & 1) * 5);
+            if (k > 2) { let h = -h; }      // a la derecha se inclinan al otro lado
+            // arriba
+            do Screen.drawLine(x, 14, x, 28);
+            do Screen.drawLine(x, 28, x - h, 28 + Math.abs(h));
+            do Background.pad(x - h, 30 + Math.abs(h));
+            // abajo (espejo vertical)
+            do Screen.drawLine(x, 226, x, 240);
+            do Screen.drawLine(x - h, 226 - Math.abs(h), x, 226);
+            do Background.pad(x - h, 224 - Math.abs(h));
+            let k = k + 1;
+        }
+        return;
+    }
+
+    // ---- Flujo de datos ---------------------------------------
 
     /** Escribe el patron p en las 32 palabras de una fila. */
     function void fill(int row, int p) {
@@ -33,18 +185,11 @@ class Background {
         return p + p;
     }
 
-    /** Dibuja los carriles: guiones largos arriba (255 = 8 pixeles
-     *  si, 8 no) y puntos abajo (771 = 2 pixeles cada 8). */
-    function void init() {
-        do Background.fill(245, 255);
-        do Background.fill(246, 255);
-        do Background.fill(250, 771);
-        do Background.fill(251, 771);
-        return;
-    }
-
-    /** Avanza el fondo un frame. El carril de abajo rota dos veces:
-     *  va al doble de velocidad y da sensacion de profundidad. */
+    /** Avanza el flujo de datos un frame. Cada carril repite el mismo
+     *  patron de 16 bits en sus 32 palabras: rotar ese patron 1 bit
+     *  mueve todo el carril 1 pixel. El patron actual se lee de la
+     *  propia pantalla. El carril de abajo rota dos veces: va al
+     *  doble de velocidad y da sensacion de profundidad. */
     function void step() {
         var int p;
         let p = Background.rot(Memory.peek(24224));     // fila 245
