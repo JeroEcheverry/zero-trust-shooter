@@ -49,3 +49,6 @@ Eres el nuevo ingeniero de seguridad de la empresa. Al empezar cada nivel se cue
 Compilar `FireWallZeroTrust-devMode/` en vez de `FirewallZeroTrust/`. En la partida, **M** abre el menú: `1`-`3` ir a un nivel · `4` restaurar vidas · `5` modo dios · `6` game over · `ENTER` volver.
 
 Es una copia del juego; solo cambian `Game.jack` y `Hud.jack`.
+
+
+## Video: https://youtu.be/992HxdaTQIk
